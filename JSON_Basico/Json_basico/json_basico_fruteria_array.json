@@ -1,0 +1,8 @@
+{
+    "Fruta": 
+    [
+        { "Nombre de Fruta": "Manzana", "Cantidad": 20 },
+        { "Nombre de Fruta": "Pera", "Cantidad": 10 },
+        { "Nombre de Fruta ": "Naranja", "Cantidad": 30 }
+    ]
+}
