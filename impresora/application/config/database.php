@@ -95,7 +95,6 @@ $db['default'] = array(
     'failover' => array(),
     'save_queries' => TRUE
 );
-
 $db['moodle'] = array(
     'dsn' => '',
     'hostname' => 'iescelia.org',

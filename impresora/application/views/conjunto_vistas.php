@@ -1,5 +1,6 @@
 <?php
-include('header.php');
-include($pagina.".php");
-include('footer.php');
+
+include('partes/header.php');
+include($pagina . '.php');
+include('partes/footer.php');
 ?>

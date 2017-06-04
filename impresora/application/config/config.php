@@ -25,7 +25,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   |
  */
 // Crea una ruta por defecto para encadenar a los enlaces
-$config['base_url'] = 'http://localhost/impresora/';
+$config['base_url'] = 'http://localhost/impresora';
 
 /*
   |--------------------------------------------------------------------------

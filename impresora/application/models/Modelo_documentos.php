@@ -9,43 +9,41 @@ class Modelo_documentos extends CI_Model {
     }
 
     /**
-     * Sube el documento tanto del nombre , archivo como el idusr
+     * Subir archivos
      * 
-     * @param type $data
+     * @param type $data ARRAY
      * @param type $archivoId
      * @param type $idusr
      */
     public function uploadDocument($data, $archivoId, $idusr) {
 
-        $date = date('d/m/Y', time());
-
-//Crea un array de documentos
+        $date = date('d/m/Y', time()); // devuelve 'String'
+        
+//'Array Asociativo'   
         $documentos = array(
-            'titulo' => $data['url'],
-            'notas' => $data['notas'],
+            'titulo' => $data['url'], // contiene la url
+            'notas' => $data['notas'], // cotiene las notas
             'estado' => 0,
             'usuario_id' => $idusr,
-            'fecha_creacion' => $date,
+            'fecha_creacion' => $date, // objeto fecha
         );
 
-//Hace una inserccion del array de datos
-        $this->db->set($documentos);
+        $this->db->set($documentos); // permite establecer valores para insercciones/actualizaciones
         $this->db->insert('documentos');
-//        $query = $this->db->insert('documentos');
 
+//'Array Asociativo'   
         $archivos = array(
             'id_archivo' => $archivoId,
-            'id_documento' => $this->db->insert_id(), // inserta el ultimo id del documento
-            'nombre_archivo' => $data['nombreConjunto'],
+            'id_documento' => $this->db->insert_id(),
+            'nombre_archivo' => $data['nombreConjunto'], // contiene 
         );
 
-//Hace una inserccion del         
         $this->db->set($archivos);
-        $this->db->insert('archivo');
+        $this->db->insert('archivo'); // BD donde insertar los datos
     }
 
     /**
-     * Funcion que devuelve la ultima fila de la tabla con el id_archivo 
+     * Devuelve el numero que tiene el id_archivo
      * 
      * @return int
      */
@@ -55,82 +53,74 @@ class Modelo_documentos extends CI_Model {
         $this->db->order_by('id_archivo', 'DESC');
         $this->db->limit(1);
 
+//Obtiene todos los datos de la tabla 'archivo'        
         $query = $this->db->get('archivo');
 
-        $lastId = $query->result_array();
-
-        var_dump($lastId);
+//Convierte los datos de la tabla 'archivo' en 'Array'
+        $lastId = $query->result_array(); //result_array - SI NO TIENE VALORES DEVUELVE FALSE        
 
         if (!$lastId) {
-            return 1;
+            return 1; // El último archivo será el 1º 
         } else {
-            return $lastId[0]['id_archivo'];
+//                        Fila   Columna
+            return $lastId[0]['id_archivo']; // devuelve una fila distinta de 1  
         }
     }
 
     /**
-     * Funcion permite descargar archivos a su escritorio 
+     * Usa la funcion helper('download')
+     * Para descargar archivo desde 'uploads'
      * 
      * @param type $name
      */
     public function downloadDocument($name) {
-
         $this->load->helper('download');
         force_download('uploads/' . $name, NULL);
     }
 
     /**
-     * Todos los 'datos' del documentos 
-     * para el panel de administracion
+     * Info del documentos para el panel de admin
      * 
-     * @return type string JSON
+     * @return type Regresa Array con valores BD
      */
     public function getDocumentInfo() {
 
-        $this->db->select('*');
+        $this->db->select('*'); // todo los campos
+
         $this->db->join('documentos', 'documentos.documento_id = archivo.id_documento');
         $this->db->join('usuarios', 'documentos.usuario_id = usuarios.usuario_id');
 
-        $query = $this->db->get('archivo');
+        $query = $this->db->get('archivo'); // select * from archivo - Filtrando por documento y usuarios
 
+//Devuelve el registro de la BD como 'array'        
         $docInfo = $query->result_array();
 
+//Codifica el ARRAY a cadena JSON        
         $docInfoJson = json_encode($docInfo);
-
+//Regresa Array con valores BD
         return $docInfoJson;
     }
 
     /**
-     * Pasamos "idusr" para
-     * obtener los 'documentos'
-     * relacionados y pasarlos de array a JSON
+     * Info documentos del usuario mediante el $idusr
      * 
      * @param type $idusr
-     * 
-     * @return type string JSON
+     * @return type
      */
     public function getDocumentInfoUser($idusr) {
 
-        $this->db->select('*');
+        $this->db->select('*'); // todos los campos
+
+// Le pasamos el $idusr para hacer la seleccion      
         $this->db->join('documentos', 'documentos.documento_id = archivo.id_documento and usuario_id = ' . $idusr);
 
-        $query = $this->db->get('archivo');
+        $query = $this->db->get('archivo'); // selecciono la tabla archivo
 
-        $docInfo = $query->result_array();
+        $docInfo = $query->result_array(); // devuelve un array
+//        
+        $docInfoJson = json_encode($docInfo); // codifica a Array String - JSON
 
-        $docInfoJson = json_encode($docInfo);
-
-        return $docInfoJson;
-    }
-    
-    /**
-     * Obtener todos los elementos de la bd Documentos
-     * 
-     * @return type
-     */
-    public function get_all_documentos(){
-        $documentos = $this->db->query('SELECT * FROM documentos');
-        return $documentos;
+        return $docInfoJson; // devuelve 'Array' 
     }
 
 }

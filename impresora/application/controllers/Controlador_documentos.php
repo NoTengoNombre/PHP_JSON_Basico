@@ -2,10 +2,6 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Objetivo : Volcar los datos a las VISTAS usando 'funciones' del MODELO
- * 
- */
 class Controlador_documentos extends CI_Controller {
 
     public function __construct() {
@@ -14,108 +10,87 @@ class Controlador_documentos extends CI_Controller {
     }
 
     /**
-     * Subir varios archivos
+     * Subir archivo al servidor
+     * mediate un formulario
      */
     public function uploadDocument() {
-//Configuracion de los archivos
-        $config['upload_path'] = './uploads/'; // ruta
-        $config['allowed_types'] = 'pdf|doc|docx|word|odt|odp|ppt|zip'; // tipos de archivo a subir
-        $config['max_size'] = 5000; // tamaño
+// Configuración de los archivos que se van a subir       
+        $config['upload_path'] = './uploads/';
+        $config['allowed_types'] = 'pdf';
+        $config['max_size'] = 5000;
 
-//Valor que viene del formulario
-        $numeroDocumentos = $this->input->get_post('numeroDocumentos');
-// Obtenemos la variable de "session" con los valores de la session creados anteriormente
+//Recibe del formulario el numeroDocumentos  
+        $numeroDocumentos = $this->input->post('numeroDocumentos');
+
+//Obtengo todos los valores del 'Array Asociativo' $session         
         $session = $this->session->get_userdata();
-// creamos la variable de 'session' con el numero del 'idusr'
+                    //  '__ci_last_regenerate' => int 1496512944
+                    //  'idusr' => string '1' (length=1)
+                    //  'tipousr' => string '1' (length=1)
+                    //  'nombreusr' => string 'u' (length=1)
+
+#Creo 'string' con la variable de session        
         $idusr = $session['idusr'];
-// cargamos la libreria upload y agregamos la configuración de los archivos que se pueden subir
+
+//Subir archivo con la configuracion
         $this->load->library('upload', $config);
 
-// Se almacena la ultima fila de los documentos
+//        
         $archivoId = $this->modelo_documentos->getLastArchivoId() + 1;
 
-// Se recorre el numero de documentos subidos       
         for ($i = 1; $i < $numeroDocumentos + 1; $i++) {
             
             echo $i;
             
             if (!$this->upload->do_upload('documento' . $i)) {
-            
                 echo '<h1>no entra</h1>';
-                
-                $error = array('error' => $this->upload->display_errors('<p> !! Error en la subida de archivos !! ', '</p>'));
-
-                //$this->load->view('upload_form', $error);
-                
+                $error = array('error' => $this->upload->display_errors());
             } else {
 
                 echo '<h1>entra</h1>';
-                /* $documentoId = $this->getNewDocumentoId(); //hacerla, saca documento id no usada */
                 $upload = array('upload_data' => $this->upload->data());
-                
                 $name = $upload['upload_data']['file_name'];
-                
                 $data = array(
-                    'nombreConjunto' => $this->input->get_post('nombre'),
-                    'notas' => $this->input->get_post('notas'),
+                    'nombreConjunto' => $this->input->post('nombre'),
+                    'notas' => $this->input->post('notas'),
                     'numeroDocumentos' => $numeroDocumentos,
                     'url' => $name,
                     'documentoId' => 1,
                 );
-                
                 $this->modelo_documentos->uploadDocument($data, $archivoId, $idusr);
-
-                $this->load->view('upload_success', $data);
             }
         }
     }
 
-    /**
-     * Obtiene 
-     * @param type $name
-     */
     public function downloadDocument($name) {
         $this->modelo_documentos->downloadDocument($name);
     }
 
-    /**
-     * 
-     */
     public function getDocumentInfoAdmin() {
-//        getDocumentInfo = devuelve un json
         $info = $this->modelo_documentos->getDocumentInfo();
-        $data = array("info" => $info);
-        $this->load->view('panel/documentos_admin', $data);
+        return $info;
     }
 
-    /**
-     * Ver todos los documentos mediante el 'Id' del usuario
-     */
     public function ver_documentos() {
-// Obtiene las variable de 'session'
+
         $session = $this->session->get_userdata();
-// Obtiene variable con el 'idusr'        
         $idusr = $session['idusr'];
-// Obtenemos del 'modelo'        
         $info = $this->modelo_documentos->getDocumentInfoUser($idusr);
         $data = array("info" => $info);
-        $this->load->view('usuarios/ver_documentos', $data);
+        $data['pagina'] = 'usuarios/ver_documentos';
+        $this->load->view('conjunto_vistas', $data);
     }
-     
 
-    /**
-     * Vista para subir archivos
-     */
     public function subir_documentos() {
-        $this->load->view('usuarios/subir_documentos');
+        $data['pagina'] = 'usuarios/subir_documentos';
+        $this->load->view('conjunto_vistas', $data);
     }
-    
-    /**
-     * 
-     */
-    public function obtener_todos_documentos(){
-        $documentos = $this->modelo_documentos->get_all_documentos();
-        $this->load->view('?', $documentos);
+
+    public function cambiar_estado($id) {
+        $data = array('estado' => 1);
+        echo $id;
+        $this->db->where('documento_id', $id);
+        $this->db->update('documentos', $data);
     }
 
 }
